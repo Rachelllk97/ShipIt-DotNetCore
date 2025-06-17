@@ -1,8 +1,8 @@
 ﻿﻿using System;
 using System.Collections.Generic;
 using System.Linq;
- using Microsoft.AspNetCore.Mvc;
- using ShipIt.Exceptions;
+using Microsoft.AspNetCore.Mvc;
+using ShipIt.Exceptions;
 using ShipIt.Models.ApiModels;
 using ShipIt.Repositories;
 
@@ -23,13 +23,18 @@ namespace ShipIt.Controllers
         }
 
         [HttpPost("")]
-        public void Post([FromBody] OutboundOrderRequestModel request)
+        public IActionResult Post([FromBody] OutboundOrderRequestModel request)
         {
             Log.Info(String.Format("Processing outbound order: {0}", request));
 
             var gtins = new List<String>();
+            if (request == null)
+            {
+                throw new ValidationException("Request is null");
+            }
             foreach (var orderLine in request.OrderLines)
             {
+                
                 if (gtins.Contains(orderLine.gtin))
                 {
                     throw new ValidationException(String.Format("Outbound order request contains duplicate product gtin: {0}", orderLine.gtin));
@@ -43,6 +48,8 @@ namespace ShipIt.Controllers
             var lineItems = new List<StockAlteration>();
             var productIds = new List<int>();
             var errors = new List<string>();
+            float totalweight = 0;
+            int noOfTrucksNeeded = 0;
 
             foreach (var orderLine in request.OrderLines)
             {
@@ -53,9 +60,14 @@ namespace ShipIt.Controllers
                 else
                 {
                     var product = products[orderLine.gtin];
+                    float productWeight = orderLine.quantity * product.Weight;
+                    totalweight += productWeight;
                     lineItems.Add(new StockAlteration(product.Id, orderLine.quantity));
                     productIds.Add(product.Id);
                 }
+
+                noOfTrucksNeeded = (int)Math.Ceiling(totalweight / 2000);
+
             }
 
             if (errors.Count > 0)
@@ -94,6 +106,8 @@ namespace ShipIt.Controllers
             }
 
             _stockRepository.RemoveStock(request.WarehouseId, lineItems);
+            
+            return Ok($"{noOfTrucksNeeded} trucks are needed");
         }
     }
 }
