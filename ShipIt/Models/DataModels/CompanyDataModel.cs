@@ -27,7 +27,6 @@ namespace ShipIt.Models.DataModels
         public CompanyDataModel(IDataReader dataReader) :base(dataReader)
         {
         }
-
         public CompanyDataModel(Company company)
         {
             this.Gcp = company.Gcp;
