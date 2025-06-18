@@ -14,8 +14,8 @@ Run 'dotnet restore' to locate the .csproj file in the current directory and res
 ### Setting up the Database.
 Ask project leader for database dump and add to project.
 To create a database:  
-    Run ./psql -U <username of a super user> -d <database name> -f <path of the database dump file>
-        *If you got a 'permission denied' error, please check you have used the super user username and not regular username.*
+Run ./psql -U <username of a super user> -d <database name> -f <path of the database dump file>
+    *If you got a 'permission denied' error, please check you have used the super user username and not regular username.*
 Repeat the ./psql command twice, once for the main programme and once for test, changing the name of the database each time e.g ShipIt and ShipItTest.
 
 Then for each of the projects, add a `.env` file at the root of the project.

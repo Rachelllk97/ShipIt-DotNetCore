@@ -36,7 +36,13 @@ namespace ShipIt.Controllers
 
             Log.Debug(String.Format("Found operations manager: {0}", operationsManager));
 
+            //get all stock from warehouse
             var allStock = _stockRepository.GetStockByWarehouseId(warehouseId);
+            //get all productIds 
+            var productIds = allStock.Select(ids => ids.ProductId).Distinct().ToList();
+            //get all Company 
+
+            //option: JOINs Table & Indices
 
             Dictionary<Company, List<InboundOrderLine>> orderlinesByCompany = new Dictionary<Company, List<InboundOrderLine>>();
             foreach (var stock in allStock)

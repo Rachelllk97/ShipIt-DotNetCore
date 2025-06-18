@@ -48,6 +48,15 @@ namespace ShipIt.Repositories
                 return new List<StockDataModel>();
             }
         }
+        
+
+        //public IEnumerable<(StockDataModel Stock, ProductDataModel Product, CompanyDataModel Company)> GetStockCompanyAndProductIdByWarehouseId(int id)
+        // {
+        //     var query = From stock
+        //                 JOIN product ON stock.productId,
+        //             JOIN company on product.gcp
+        //             WHERE stock.warehouseId = ??
+        //                 
 
         public Dictionary<int, StockDataModel> GetStockByWarehouseAndProductIds(int warehouseId, List<int> productIds)
         {
