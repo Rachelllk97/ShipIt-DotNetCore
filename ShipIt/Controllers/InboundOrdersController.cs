@@ -1,6 +1,7 @@
 ﻿﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using ShipIt.Exceptions;
 using ShipIt.Models.ApiModels;
@@ -28,19 +29,17 @@ namespace ShipIt.Controllers
         }
 
         [HttpGet("{warehouseId}")]
-        public InboundOrderResponse Get([FromRoute] int warehouseId)
-        {
-            Log.Info("orderIn for warehouseId: " + warehouseId);
+        public async Task<InboundOrderResponse> Get([FromRoute] int warehouseId)    
+         {
+            Log.Info("orderIn for operationsManager = new Employee(_employeeRepository.GetOperationsManager(warehouseId))");
 
             var operationsManager = new Employee(_employeeRepository.GetOperationsManager(warehouseId));
 
             Log.Debug(String.Format("Found operations manager: {0}", operationsManager));
 
-            var result = _stockRepository.GetStockByWarehouseId(warehouseId);
-
-            IEnumerable<StockDataModel> allStock = _stockRepository.GetStockByWarehouseId(warehouseId);
-            IEnumerable<ProductDataModel> allProducts = (IEnumerable<ProductDataModel>)_productRepository.GetAllActiveProducts();
-            IEnumerable<CompanyDataModel> allCompanies = (IEnumerable<CompanyDataModel>)_companyRepository.GetAllCompanies();
+            var allStock = await _stockRepository.GetStockByWarehouseIdAsync(warehouseId);
+            var allProducts = (await _productRepository.GetAllActiveProductsAsync()).ToList();
+            var allCompanies = (await _companyRepository.GetAllCompaniesAsync()).ToList();
 
             var joinedStockProductCompany = from stock in allStock
                                 join product in allProducts on stock.ProductId equals product.Id
@@ -77,7 +76,6 @@ namespace ShipIt.Controllers
                 OrderSegments = orderSegments
             };
         }
-
         [HttpPost("")]
         public void Post([FromBody] InboundManifestRequestModel requestModel)
         {
@@ -133,4 +131,4 @@ namespace ShipIt.Controllers
             Log.Info("Stock levels increased");
         }
     }
-}
+};

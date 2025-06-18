@@ -6,6 +6,7 @@ using Npgsql;
 using ShipIt.Exceptions;
 using ShipIt.Models.ApiModels;
 using ShipIt.Models.DataModels;
+using System.Threading.Tasks;
 
 namespace ShipIt.Repositories
 {
@@ -14,6 +15,7 @@ namespace ShipIt.Repositories
         int GetTrackedItemsCount();
         int GetStockHeldSum();
         IEnumerable<StockDataModel> GetStockByWarehouseId(int id);
+        Task<IEnumerable<StockDataModel>> GetStockByWarehouseIdAsync(int id);
         Dictionary<int, StockDataModel> GetStockByWarehouseAndProductIds(int warehouseId, List<int> productIds);
         void RemoveStock(int warehouseId, List<StockAlteration> lineItems);
         void AddStock(int warehouseId, List<StockAlteration> lineItems);
@@ -36,7 +38,7 @@ namespace ShipIt.Repositories
 
         public IEnumerable<StockDataModel> GetStockByWarehouseId(int id)
         {
-            string sql = "SELECT * FROM stock WHERE idx_warehouse_id = @w_id";
+            string sql = "SELECT * FROM stock WHERE w_id = @w_id";
             var parameter = new NpgsqlParameter("@w_id", id);
             string noProductWithIdErrorMessage = string.Format("No stock found with w_id: {0}", id);
             try
@@ -49,14 +51,22 @@ namespace ShipIt.Repositories
             }
         }
         
-
-        //public IEnumerable<(StockDataModel Stock, ProductDataModel Product, CompanyDataModel Company)> GetStockCompanyAndProductIdByWarehouseId(int id)
-        // {
-        //     var query = From stock
-        //                 JOIN product ON stock.productId,
-        //             JOIN company on product.gcp
-        //             WHERE stock.warehouseId = ??
-        //                 
+        public async Task<IEnumerable<StockDataModel>> GetStockByWarehouseIdAsync(int id)
+        {
+            string sql = "SELECT * FROM stock WHERE w_id = @w_id";
+            var parameter = new NpgsqlParameter("@w_id", id);
+            string noProductWithIdErrorMessage = string.Format("No stock found with w_id: {0}", id);
+            try
+            {
+                return await Task.Run(() =>
+                    base.RunGetQuery(sql, reader => new StockDataModel(reader), noProductWithIdErrorMessage, parameter).ToList()
+                );
+            }
+            catch (NoSuchEntityException)
+            {
+                return new List<StockDataModel>();
+            }
+        }              
 
         public Dictionary<int, StockDataModel> GetStockByWarehouseAndProductIds(int warehouseId, List<int> productIds)
         {

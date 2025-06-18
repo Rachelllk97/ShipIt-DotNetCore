@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Linq;
+using System.Threading.Tasks;
 using Npgsql;
 using ShipIt.Models.ApiModels;
 using ShipIt.Models.DataModels;
@@ -13,7 +14,7 @@ namespace ShipIt.Repositories
     {
         int GetCount();
         CompanyDataModel GetCompany(string gcp);
-        IEnumerable<CompanyDataModel> GetAllCompanies();
+        Task<IEnumerable<CompanyDataModel>> GetAllCompaniesAsync();
         void AddCompanies(IEnumerable<Company> companies);
     }
 
@@ -36,13 +37,15 @@ namespace ShipIt.Repositories
             return base.RunSingleGetQuery(sql, reader => new CompanyDataModel(reader), noProductWithIdErrorMessage, parameter);
         }
 
-        public IEnumerable<CompanyDataModel> GetAllCompanies()
+        public async Task<IEnumerable<CompanyDataModel>> GetAllCompaniesAsync()
         {
             string sql =
                 "SELECT gcp_cd, gln_nm, gln_addr_02, gln_addr_03, gln_addr_04, gln_addr_postalcode, gln_addr_city, contact_tel, contact_mail " +
                 "FROM gcp ";
             string noProductWithIdErrorMessage = string.Format("No companies found");
-            return base.RunGetQuery(sql, reader => new CompanyDataModel(reader), noProductWithIdErrorMessage, null);
+            return await Task.Run(() =>
+             base.RunGetQuery(sql, reader => new CompanyDataModel(reader), noProductWithIdErrorMessage, null)
+            );
         }
 
         public void AddCompanies(IEnumerable<Company> companies)

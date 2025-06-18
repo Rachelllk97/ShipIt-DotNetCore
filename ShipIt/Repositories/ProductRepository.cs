@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading.Tasks;
 using Npgsql;
 using ShipIt.Exceptions;
 using ShipIt.Models.DataModels;
@@ -14,7 +15,7 @@ namespace ShipIt.Repositories
         ProductDataModel GetProductByGtin(string gtin);
         IEnumerable<ProductDataModel> GetProductsByGtin(List<string> gtins);
         ProductDataModel GetProductById(int id);
-        IEnumerable<ProductDataModel> GetAllActiveProducts();
+        Task<IEnumerable<ProductDataModel>> GetAllActiveProductsAsync();
         void AddProducts(IEnumerable<ProductDataModel> products);
         void DiscontinueProductByGtin(string gtin);
     }
@@ -52,13 +53,15 @@ namespace ShipIt.Repositories
             string noProductWithIdErrorMessage = string.Format("No products found with id of value {0}", id.ToString());
             return RunSingleGetQuery(sql, reader => new ProductDataModel(reader), noProductWithIdErrorMessage, parameter);
         }
-    
 
-        public IEnumerable<ProductDataModel> GetAllActiveProducts()
+
+        public async Task<IEnumerable<ProductDataModel>> GetAllActiveProductsAsync()
         {
             string sql = "SELECT p_id, gtin_cd, gcp_cd, gtin_nm, m_g, l_th, ds, min_qt FROM gtin where ds = 0";
-            
-            return base.RunGetQuery(sql, reader => new ProductDataModel(reader),"No products found", null);
+
+            return await Task.Run(() =>
+             base.RunGetQuery(sql, reader => new ProductDataModel(reader), "No products found", null)
+            );
         }
 
         public void DiscontinueProductByGtin(string gtin)
