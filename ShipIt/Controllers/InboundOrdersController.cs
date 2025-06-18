@@ -36,46 +36,37 @@ namespace ShipIt.Controllers
 
             Log.Debug(String.Format("Found operations manager: {0}", operationsManager));
 
-            //get all stock from warehouse
-            var allStock = _stockRepository.GetStockByWarehouseId(warehouseId);
-            //get all productIds 
-            var productIds = allStock.Select(ids => ids.ProductId).Distinct().ToList();
-            //get all Company 
+            var result = _stockRepository.GetStockByWarehouseId(warehouseId);
 
-            //option: JOINs Table & Indices
+            IEnumerable<StockDataModel> allStock = _stockRepository.GetStockByWarehouseId(warehouseId);
+            IEnumerable<ProductDataModel> allProducts = (IEnumerable<ProductDataModel>)_productRepository.GetAllActiveProducts();
+            IEnumerable<CompanyDataModel> allCompanies = (IEnumerable<CompanyDataModel>)_companyRepository.GetAllCompanies();
 
-            Dictionary<Company, List<InboundOrderLine>> orderlinesByCompany = new Dictionary<Company, List<InboundOrderLine>>();
-            foreach (var stock in allStock)
-            {
-                Product product = new Product(_productRepository.GetProductById(stock.ProductId));
-                if(stock.held < product.LowerThreshold && !product.Discontinued)
+            var joinedStockProductCompany = from stock in allStock
+                                join product in allProducts on stock.ProductId equals product.Id
+                                join company in allCompanies on product.Gcp equals company.Gcp
+                                where stock.held < product.LowerThreshold
+                                select new
+                                {
+                                    Company = company,
+                                    OrderLine = new InboundOrderLine
+                                    {
+                                        gtin = product.Gtin,
+                                        quantity = Math.Max(product.LowerThreshold * 3 - stock.held, product.MinimumOrderQuantity),
+                                        name = product.Name
+                                    }
+                                };
+            var orderlinesByCompany = joinedStockProductCompany
+                                    .GroupBy(company => company.Company)
+                                    .ToDictionary(Company => Company.Key, company => company.Select(order => order.OrderLine).ToList());
+     
+           Log.Debug(String.Format("Constructed order lines: {0}", orderlinesByCompany));
+
+            var orderSegments = orderlinesByCompany.Select(ol => new OrderSegment
                 {
-                    Company company = new Company(_companyRepository.GetCompany(product.Gcp));
-
-                    var orderQuantity = Math.Max(product.LowerThreshold * 3 - stock.held, product.MinimumOrderQuantity);
-
-                    if (!orderlinesByCompany.ContainsKey(company))
-                    {
-                        orderlinesByCompany.Add(company, new List<InboundOrderLine>());
-                    }
-
-                    orderlinesByCompany[company].Add( 
-                        new InboundOrderLine()
-                        {
-                            gtin = product.Gtin,
-                            name = product.Name,
-                            quantity = orderQuantity
-                        });
-                }
-            }
-
-            Log.Debug(String.Format("Constructed order lines: {0}", orderlinesByCompany));
-
-            var orderSegments = orderlinesByCompany.Select(ol => new OrderSegment()
-            {
-                OrderLines = ol.Value,
-                Company = ol.Key
-            });
+                    Company = new Company (ol.Key),
+                    OrderLines = ol.Value
+                });
 
             Log.Info("Constructed inbound order");
 
