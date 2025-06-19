@@ -6,6 +6,9 @@ namespace ShipIt.Models.DataModels
 {
     public class EmployeeDataModel : DataModel
     {
+        [DatabaseColumnName("em_id")] //added field
+        public int EmployeeId { get; set; } //added field
+
         [DatabaseColumnName("name")]
         public string Name { get; set; }
         [DatabaseColumnName("w_id")]

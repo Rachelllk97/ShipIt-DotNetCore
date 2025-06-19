@@ -9,6 +9,7 @@ namespace ShipIt.Models.ApiModels
 {
     public class Employee
     {
+        public string EmployeeId { get; set; } //added field
         public string Name { get; set; }
         public int WarehouseId { get; set; }
         public EmployeeRole role { get; set; }
