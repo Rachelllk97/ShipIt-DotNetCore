@@ -1,21 +1,25 @@
 ﻿﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using ShipIt.Models.ApiModels;
 
 namespace ShipIt.Models.DataModels
 {
+    [Table("em")]
     public class EmployeeDataModel : DataModel
     {
-        [DatabaseColumnName("em_id")] //added field
+        [Column("em_id")] //added field
         public int EmployeeId { get; set; } //added field
 
-        [DatabaseColumnName("name")]
+        [Column("name")]
+        [Key]
         public string Name { get; set; }
-        [DatabaseColumnName("w_id")]
+        [Column("w_id")]
         public int WarehouseId { get; set; }
-        [DatabaseColumnName("role")]
+        [Column("role")]
         public string Role { get; set; }
-        [DatabaseColumnName("ext")]
+        [Column("ext")]
         public string Ext { get; set; }
 
         public EmployeeDataModel(IDataReader dataReader) : base(dataReader)
@@ -26,6 +30,7 @@ namespace ShipIt.Models.DataModels
 
         public EmployeeDataModel(Employee employee)
         {
+            this.EmployeeId = employee.EmployeeId;
             this.Name = employee.Name;
             this.WarehouseId = employee.WarehouseId;
             this.Role = MapApiRoleToDatabaseRole(employee.role);

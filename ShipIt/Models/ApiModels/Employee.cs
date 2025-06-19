@@ -4,12 +4,13 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using ShipIt.Models.DataModels;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShipIt.Models.ApiModels
 {
     public class Employee
     {
-        public string EmployeeId { get; set; } //added field
+        public int EmployeeId { get; set; } //added field
         public string Name { get; set; }
         public int WarehouseId { get; set; }
         public EmployeeRole role { get; set; }
@@ -17,6 +18,7 @@ namespace ShipIt.Models.ApiModels
 
         public Employee(EmployeeDataModel dataModel)
         {
+            EmployeeId = dataModel.EmployeeId;
             Name = dataModel.Name;
             WarehouseId = dataModel.WarehouseId;
             role = MapDatabaseRoleToApiRole(dataModel.Role);
