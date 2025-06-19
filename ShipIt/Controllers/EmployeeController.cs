@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using ShipIt.Exceptions;
 using ShipIt.Models.ApiModels;
 using ShipIt.Repositories;
+//using ShipIt.Models.ApiModels.EmployeeResponse;
 
 namespace ShipIt.Controllers
 {
@@ -30,6 +31,19 @@ namespace ShipIt.Controllers
 
             Log.Info("Found employee: " + employee);
             return new EmployeeResponse(employee);
+        }
+
+        [HttpGet("employee/{employeeId}")]
+        public EmployeeResponse GetByEmployeeId([FromRoute] int employeeId)
+        {
+            Log.Info($"Looking up employee by ID: {employeeId}");
+
+            var employee = new Employee(_employeeRepository.GetEmployeeById(employeeId));
+
+
+            Log.Info("Found employee: " + employee);
+            return new EmployeeResponse(employee);
+
         }
 
         [HttpGet("{warehouseId}")]

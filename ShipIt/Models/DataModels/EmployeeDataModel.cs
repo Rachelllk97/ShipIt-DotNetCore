@@ -9,17 +9,17 @@ namespace ShipIt.Models.DataModels
     [Table("em")]
     public class EmployeeDataModel : DataModel
     {
-        [Column("em_id")] //added field
+        [DatabaseColumnName("em_id")] //added field
         public int EmployeeId { get; set; } //added field
 
-        [Column("name")]
+        [DatabaseColumnName("name")]
         [Key]
         public string Name { get; set; }
-        [Column("w_id")]
+        [DatabaseColumnName("w_id")]
         public int WarehouseId { get; set; }
-        [Column("role")]
+        [DatabaseColumnName("role")]
         public string Role { get; set; }
-        [Column("ext")]
+        [DatabaseColumnName("ext")]
         public string Ext { get; set; }
 
         public EmployeeDataModel(IDataReader dataReader) : base(dataReader)
